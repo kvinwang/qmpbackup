@@ -92,7 +92,7 @@ def create(argv, backupdir, blockdev):
     opt = []
     backup_targets = {}
     fleece_targets = {}
-    timestamp = int(time())
+    timestamp = datetime.datetime.now(tz=datetime.timezone.utc).strftime('%Y%m%d%H%M%S')
     for dev in blockdev:
 
         nodname = dev.node
@@ -396,16 +396,14 @@ def snapshot_rebase(argv):
         imagebase = os.path.basename(image)
         if imagebase.startswith("INC"):
             log.info("Using timestamp as provided by from image name")
-            timestamp = int(imagebase.split("-")[1])
+            timestamp = datetime.datetime.strptime(imagebase.split("-")[1], "%Y%m%d%H%M%S")
         else:
             log.info(
                 "No timestamp provided in image name, use timestamp from filesystem"
             )
-            timestamp = int(os.path.getctime(image))
+            timestamp = datetime.datetime.fromtimestamp(int(os.path.getctime(image)))
 
-        snapshot_name = datetime.datetime.fromtimestamp(timestamp).strftime(
-            "%Y-%m-%d-%H:%M:%S"
-        )
+        snapshot_name = timestamp.strftime("%Y-%m-%d-%H:%M:%S")
 
         try:
             snapshot_cmd = f'qemu-img snapshot -c "{snapshot_name}" "{images[0]}"'
