@@ -429,8 +429,13 @@ class QmpCommon:
             sleep(1)
             try:
                 jobs = await self.qmp.execute("query-block-jobs")
-            except qmp_client.ExecInterruptedError:
-                return
+            except qmp_client.ExecInterruptedError as e:
+                self.log.error(f"failed query progress: {e}")
+                os._exit(1)
+            except Exception as e:
+                self.log.error(f"failed query progress: {e}")
+                os._exit(1)
+
             if len(jobs) == 0:
                 return
             for job in jobs:
